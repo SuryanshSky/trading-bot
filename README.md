@@ -64,6 +64,7 @@ BINANCE_API_SECRET=your_secret_key_here
 ```
 
 That's all the setup needed.
+Note: API keys are not included in this repository for security reasons. Use the provided .env.example file to configure your credentials.
 
 ---
 
