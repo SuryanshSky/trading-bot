@@ -1,102 +1,104 @@
 # Trading Bot — Binance Futures Testnet
 
-A clean, minimal Python CLI that places **Market**, **Limit**, and **Stop-Market** orders on the Binance Futures Testnet (USDT-M).
+A Python CLI app to place orders on Binance Futures Testnet (USDT-M). Built as part of a Python Developer application task.
 
 ---
 
-## Project Structure
+## What this does
+
+You run a command in the terminal, it places a real order on the Binance Futures Testnet and shows you the result. That's it. No UI, no unnecessary complexity — just a clean CLI tool that does exactly what it's supposed to do.
+
+Supported order types:
+- Market order (BUY / SELL)
+- Limit order (BUY / SELL)
+- Stop-Market order (bonus)
+
+---
+
+## Project structure
 
 ```
 trading_bot/
 ├── bot/
-│   ├── __init__.py
-│   ├── client.py          # Binance REST client (auth, signing, HTTP)
-│   ├── orders.py          # Order placement logic + OrderResult dataclass
-│   ├── validators.py      # Input validation (raises ValueError on bad input)
-│   └── logging_config.py  # File + coloured-console logging setup
-├── cli.py                 # CLI entry point (argparse)
+│   ├── client.py          # handles all API communication with Binance
+│   ├── orders.py          # order logic, builds and submits the order
+│   ├── validators.py      # validates user input before touching the API
+│   └── logging_config.py  # sets up file logging + coloured console output
+├── cli.py                 # entry point, handles all CLI arguments
 ├── logs/
-│   └── trading_bot.log    # Auto-created at runtime
-├── .env.example           # Template for credentials
-├── .gitignore
+│   └── trading_bot.log    # created automatically when you run the bot
+├── .env.example           # copy this to .env and add your keys
 ├── requirements.txt
 └── README.md
 ```
+
+The idea was to keep things separated — the CLI layer doesn't talk to Binance directly, and the API client doesn't know anything about user input. Each file has one job.
 
 ---
 
 ## Setup
 
-### 1. Get Testnet Credentials
+### Step 1 — Get your testnet API keys
 
-1. Go to [https://testnet.binancefuture.com](https://testnet.binancefuture.com)
-2. Log in with your GitHub account
-3. Under **API Key**, generate a new key pair
-4. Copy the API Key and Secret
+Go to [testnet.binancefuture.com](https://testnet.binancefuture.com) and log in with GitHub. Head to the API Management section and generate a new key pair. Copy both the API Key and the Secret Key somewhere safe — the secret is only shown once.
 
-### 2. Clone & Install
+### Step 2 — Clone the repo and install dependencies
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/trading-bot.git
+git clone https://github.com/SuryanshSky/trading-bot.git
 cd trading-bot
-
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-
 pip install -r requirements.txt
 ```
 
-### 3. Configure Credentials
+### Step 3 — Add your credentials
 
 ```bash
 cp .env.example .env
-# Edit .env and paste your testnet API key and secret
 ```
 
-`.env` contents:
+Open `.env` and fill in your keys:
+
 ```
-BINANCE_API_KEY=your_testnet_api_key
-BINANCE_API_SECRET=your_testnet_api_secret
+BINANCE_API_KEY=your_api_key_here
+BINANCE_API_SECRET=your_secret_key_here
 ```
+
+That's all the setup needed.
 
 ---
 
-## How to Run
+## How to run
 
-### Market Order (BUY)
+**Place a market BUY order:**
 ```bash
 python cli.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.001
 ```
 
-### Market Order (SELL)
+**Place a market SELL order:**
 ```bash
-python cli.py --symbol ETHUSDT --side SELL --type MARKET --quantity 0.01
+python cli.py --symbol BTCUSDT --side SELL --type MARKET --quantity 0.001
 ```
 
-### Limit Order (BUY)
+**Place a limit BUY order:**
 ```bash
 python cli.py --symbol BTCUSDT --side BUY --type LIMIT --quantity 0.001 --price 60000
 ```
 
-### Limit Order (SELL)
+**Place a limit SELL order:**
 ```bash
-python cli.py --symbol BTCUSDT --side SELL --type LIMIT --quantity 0.001 --price 68000
+python cli.py --symbol BTCUSDT --side SELL --type LIMIT --quantity 0.001 --price 75000
 ```
 
-### Stop-Market Order *(bonus)*
+**Place a stop-market order:**
 ```bash
-python cli.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.001 --stop-price 59000
+python cli.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.001 --stop-price 70000
 ```
 
-### Pass credentials inline (no .env)
-```bash
-python cli.py --api-key YOUR_KEY --api-secret YOUR_SECRET \
-    --symbol BTCUSDT --side BUY --type MARKET --quantity 0.001
-```
+One thing to note with limit orders — the price has to be within a reasonable range of the current market price or Binance will reject it. If you get a price-related error, just check the current BTC price and adjust.
 
 ---
 
-## Example Output
+## What the output looks like
 
 ```
 ────────────────────────────────────────────────────────────
@@ -109,15 +111,14 @@ python cli.py --api-key YOUR_KEY --api-secret YOUR_SECRET \
 ────────────────────────────────────────────────────────────
   ORDER RESPONSE
 ────────────────────────────────────────────────────────────
-  Order ID       : 3147483648
-  Client OID     : web_abc123
+  Order ID       : 13096948937
   Symbol         : BTCUSDT
   Side           : BUY
   Type           : MARKET
-  Status         : FILLED
+  Status         : NEW
   Orig Qty       : 0.001
   Executed Qty   : 0.001
-  Avg / Set Price: 65432.10
+  Avg / Set Price: 74500.00
 ────────────────────────────────────────────────────────────
   ✅  Order placed successfully!
 ────────────────────────────────────────────────────────────
@@ -127,42 +128,36 @@ python cli.py --api-key YOUR_KEY --api-secret YOUR_SECRET \
 
 ## Logging
 
-All logs are written to `logs/trading_bot.log` (auto-created).
+Every run writes to `logs/trading_bot.log`. The log captures the full request payload, the response from Binance, and any errors that occur. On the console you only see INFO level and above — the file gets everything including DEBUG.
 
-- **DEBUG** level: full request payloads and response bodies (file only)
-- **INFO** level: order lifecycle events (file + console in green)
-- **WARNING**: validation failures
-- **ERROR**: API errors, network failures
-
-Log rotation: 5 MB per file, 3 backups kept.
+Logs rotate automatically at 5 MB so they don't pile up.
 
 ---
 
-## Validation & Error Handling
+## Error handling
 
-| Scenario | Behaviour |
-|---|---|
-| Missing `--price` for LIMIT | Clear `ValueError` message, no API call made |
-| `--price` supplied for MARKET | Rejected before API call |
-| Invalid symbol characters | Caught by validator |
-| Non-positive quantity/price | Rejected with descriptive message |
-| Binance API error (e.g. -1121) | Logged + shown to user; exit code 1 |
-| Network timeout / DNS failure | Caught as `NetworkError`; exit code 1 |
+A few things I made sure to handle properly:
+
+- If you forget `--price` on a limit order, it tells you before making any API call
+- If you pass `--price` on a market order, same thing — caught early
+- Invalid symbols, negative quantities, and non-numeric values are all caught by the validator
+- Binance API errors come back with the error code and message clearly shown
+- Network timeouts and connection failures are caught separately so you get a useful message instead of a raw exception
 
 ---
 
 ## Assumptions
 
-- Testnet only — no real funds are used.
-- Position mode: one-way (default). `positionSide` is not set.
-- `timeInForce` defaults to `GTC` for LIMIT orders.
-- Quantity precision is not automatically adjusted; ensure your quantity matches the symbol's `stepSize` filter on the testnet exchange.
+- This runs against the Binance Futures Testnet only — no real money involved
+- Position mode is one-way (the default on testnet)
+- Limit orders use GTC (Good Till Cancelled) by default
+- Quantity precision isn't auto-adjusted — use values that match the symbol's step size (0.001 works fine for BTCUSDT on testnet)
 
 ---
 
 ## Dependencies
 
-| Package | Purpose |
-|---|---|
-| `requests` | HTTP client |
-| `python-dotenv` | Load `.env` credentials |
+Only two external libraries used:
+
+- `requests` — for making HTTP calls to the Binance API
+- `python-dotenv` — for loading credentials from the `.env` file
