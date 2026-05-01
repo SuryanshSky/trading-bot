@@ -148,7 +148,13 @@ A few things I made sure to handle properly:
 - Network timeouts and connection failures are caught separately so you get a useful message instead of a raw exception
 
 ---
+## Tech Stack
+- Python 3
+- python-binance
+- Typer (CLI framework)
+- python-dotenv
 
+---
 ## Assumptions
 
 - This runs against the Binance Futures Testnet only — no real money involved
