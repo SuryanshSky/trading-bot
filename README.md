@@ -150,8 +150,8 @@ A few things I made sure to handle properly:
 ---
 ## Tech Stack
 - Python 3
-- python-binance
-- Typer (CLI framework)
+- requests
+- argparse
 - python-dotenv
 
 ---
